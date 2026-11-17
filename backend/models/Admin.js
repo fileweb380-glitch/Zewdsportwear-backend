@@ -2,30 +2,20 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const adminSchema = new mongoose.Schema({
-  username: {
+  role: {
     type: String,
-    required: [true, 'Please add a username'],
-    unique: true,
-    trim: true,
-    minlength: 3
-  },
-  email: {
-    type: String,
-    required: [true, 'Please add an email'],
-    unique: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please add a valid email']
+    default: 'admin',
+    unique: true
   },
   password: {
     type: String,
-    required: [true, 'Please add a password'],
-    minlength: 6,
+    required: [true, 'Admin key password is required'],
     select: false
   }
 }, {
   timestamps: true
 });
 
-// Hash password before saving
 adminSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     return next();
@@ -35,9 +25,8 @@ adminSchema.pre('save', async function(next) {
   next();
 });
 
-// Match password method
-adminSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+adminSchema.methods.matchPassword = async function(enteredKey) {
+  return await bcrypt.compare(enteredKey, this.password);
 };
 
 module.exports = mongoose.model('Admin', adminSchema);
