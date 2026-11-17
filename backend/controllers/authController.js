@@ -7,21 +7,18 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Authenticate admin & get token
-// @route   POST /api/admin/login
-// @access  Public
 const loginAdmin = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide username and password' });
+    if (!password) {
+      return res.status(400).json({ success: false, message: 'Please enter the admin key' });
     }
 
-    const admin = await Admin.findOne({ username }).select('+password');
+    const admin = await Admin.findOne({ role: 'admin' }).select('+password');
 
     if (!admin || !(await admin.matchPassword(password))) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid admin key' });
     }
 
     const token = generateToken(admin._id);
@@ -31,8 +28,7 @@ const loginAdmin = async (req, res) => {
       token,
       admin: {
         id: admin._id,
-        username: admin.username,
-        email: admin.email
+        role: admin.role
       }
     });
   } catch (error) {
@@ -41,9 +37,6 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-// @desc    Get current admin profile
-// @route   GET /api/admin/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     res.status(200).json({
@@ -56,9 +49,6 @@ const getMe = async (req, res) => {
   }
 };
 
-// @desc    Logout admin
-// @route   POST /api/admin/logout
-// @access  Private
 const logoutAdmin = async (req, res) => {
   try {
     res.status(200).json({ success: true, message: 'Logged out successfully' });
@@ -73,3 +63,4 @@ module.exports = {
   getMe,
   logoutAdmin
 };
+
